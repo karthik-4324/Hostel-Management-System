@@ -1,0 +1,213 @@
+### Health Check
+GET http://localhost:8080/api/health
+
+### Register Admin User
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Admin",
+  "lastName": "User",
+  "email": "admin@hostel.com",
+  "password": "admin123",
+  "role": "ADMIN",
+  "phone": "1234567890",
+  "dateOfBirth": "1990-01-01",
+  "gender": "MALE",
+  "emergencyContact": {
+    "name": "Emergency Contact",
+    "phone": "0987654321",
+    "relation": "Family"
+  },
+  "department": "Administration"
+}
+
+### Register Student User
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@student.com",
+  "password": "student123",
+  "role": "STUDENT",
+  "phone": "1234567890",
+  "dateOfBirth": "2000-01-01",
+  "gender": "MALE",
+  "emergencyContact": {
+    "name": "Jane Doe",
+    "phone": "0987654321",
+    "relation": "Mother"
+  },
+  "course": "Computer Science",
+  "year": 2
+}
+
+### Register Warden User
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Warden",
+  "lastName": "Smith",
+  "email": "warden@hostel.com",
+  "password": "warden123",
+  "role": "WARDEN",
+  "phone": "1234567890",
+  "dateOfBirth": "1985-01-01",
+  "gender": "MALE",
+  "emergencyContact": {
+    "name": "Emergency Contact",
+    "phone": "0987654321",
+    "relation": "Family"
+  },
+  "department": "Hostel Management"
+}
+
+### Login Admin
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@hostel.com",
+  "password": "admin123"
+}
+
+### Login Student
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@student.com",
+  "password": "student123"
+}
+
+### Get Profile (requires token)
+GET http://localhost:8080/api/auth/profile
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Update Profile (requires token)
+PUT http://localhost:8080/api/auth/profile
+Content-Type: application/json
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+{
+  "firstName": "Updated",
+  "lastName": "Name",
+  "phone": "9876543210"
+}
+
+### Get Admin Dashboard (requires admin token)
+GET http://localhost:8080/api/dashboard/admin
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN_HERE
+
+### Get Student Dashboard (requires student token)
+GET http://localhost:8080/api/dashboard/student
+Authorization: Bearer YOUR_STUDENT_JWT_TOKEN_HERE
+
+### Get All Students (requires admin/warden token)
+GET http://localhost:8080/api/students
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN_HERE
+
+### Create Room (requires admin/warden token)
+POST http://localhost:8080/api/rooms
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN_HERE
+
+{
+  "roomNumber": "101",
+  "floor": 1,
+  "block": "A",
+  "type": "double",
+  "capacity": 2,
+  "monthlyRent": 5000,
+  "securityDeposit": 10000,
+  "amenities": ["ac", "wifi", "study_table", "wardrobe"],
+  "description": "Spacious double occupancy room with AC"
+}
+
+### Get All Rooms
+GET http://localhost:8080/api/rooms
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Create Complaint (requires student token)
+POST http://localhost:8080/api/complaints
+Content-Type: application/json
+Authorization: Bearer YOUR_STUDENT_JWT_TOKEN_HERE
+
+{
+  "title": "AC not working",
+  "description": "The air conditioner in room 101 is not cooling properly",
+  "category": "electrical",
+  "priority": "high",
+  "location": "Room 101, Block A"
+}
+
+### Get All Complaints
+GET http://localhost:8080/api/complaints
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Create Fee (requires admin/warden token)
+POST http://localhost:8080/api/fees
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN_HERE
+
+{
+  "studentId": "STUDENT_ID_HERE",
+  "feeType": "room_rent",
+  "amount": 5000,
+  "dueDate": "2025-08-01",
+  "month": 8,
+  "year": 2025,
+  "description": "Monthly room rent for August 2025"
+}
+
+### Get All Fees
+GET http://localhost:8080/api/fees
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Create Leave Application (requires student token)
+POST http://localhost:8080/api/leaves
+Content-Type: application/json
+Authorization: Bearer YOUR_STUDENT_JWT_TOKEN_HERE
+
+{
+  "leaveType": "home",
+  "startDate": "2025-07-15",
+  "endDate": "2025-07-20",
+  "reason": "Family function",
+  "emergencyContact": {
+    "name": "Parent Name",
+    "phone": "9876543210",
+    "relation": "Father"
+  },
+  "destination": {
+    "address": "123 Main Street",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "pincode": "400001"
+  }
+}
+
+### Get All Leaves
+GET http://localhost:8080/api/leaves
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Create Announcement (requires admin/warden token)
+POST http://localhost:8080/api/announcements
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN_HERE
+
+{
+  "title": "Hostel Maintenance Notice",
+  "content": "The hostel will undergo maintenance work from July 10-12. Please cooperate with the maintenance team.",
+  "type": "maintenance",
+  "priority": "high",
+  "targetAudience": "all",
+  "isSticky": true
+}
+
+### Get All Announcements
+GET http://localhost:8080/api/announcements
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
