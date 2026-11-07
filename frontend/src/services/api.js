@@ -97,6 +97,7 @@ export const feesAPI = {
   getById: (id) => api.get(`/api/fees/${id}`),
   create: (feeData) => api.post("/api/fees", feeData),
   update: (id, feeData) => api.put(`/api/fees/${id}`, feeData),
+  delete: (id) => api.delete(`/api/fees/${id}`),
   addPayment: (id, paymentData) =>
     api.post(`/api/fees/${id}/payment`, paymentData),
   getStats: () => api.get("/api/fees/stats"),
@@ -111,6 +112,7 @@ export const leavesAPI = {
   update: (id, leaveData) => api.put(`/api/leaves/${id}`, leaveData),
   updateStatus: (id, statusData) =>
     api.put(`/api/leaves/${id}/status`, statusData),
+  delete: (id) => api.delete(`/api/leaves/${id}`),
   cancel: (id, reason) => api.post(`/api/leaves/${id}/cancel`, { reason }),
   getStats: () => api.get("/api/leaves/stats"),
 };

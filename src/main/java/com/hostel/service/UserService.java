@@ -4,9 +4,14 @@ import com.hostel.model.User;
 import com.hostel.model.Room;
 import com.hostel.repository.UserRepository;
 import com.hostel.repository.RoomRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.hostel.model.Fee;
+import com.hostel.repository.FeeRepository;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -16,6 +21,9 @@ import java.util.*;
 public class UserService {
 
     private final UserRepository userRepository;
+    @Autowired
+    private FeeRepository feeRepository;
+
     private final RoomRepository roomRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -206,7 +214,26 @@ public class UserService {
 
         user.setRoomId(roomId);
         userRepository.save(user);
+        createRoomFee(studentId, room);
         return true;
+    }
+
+    private void createRoomFee(String studentId, Room room) {
+        if (room.getMonthlyRent() == null || room.getMonthlyRent() <= 0) {
+            return;
+        }
+        LocalDate today = LocalDate.now();
+        boolean exists = feeRepository.findByStudentIdAndYear(studentId, today.getYear()).stream()
+                .anyMatch(f -> "room_rent".equals(f.getFeeType())
+                        && Objects.equals(f.getMonth(), today.getMonthValue()));
+        if (exists) {
+            return;
+        }
+        Fee fee = new Fee(studentId, "room_rent", room.getMonthlyRent(),
+                today.plusDays(30), today.getMonthValue(), today.getYear());
+        fee.setRoomId(room.getId());
+        fee.setDescription("Room fee for room " + room.getRoomNumber());
+        feeRepository.save(fee);
     }
 
     private String generateStudentId() {

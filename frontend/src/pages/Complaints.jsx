@@ -271,11 +271,23 @@ const Complaints = () => {
                     )}
                   </div>
                 </div>
-
+                {user.role === "STUDENT" && complaint.status === "PENDING" && (
+                  <div className="flex justify-end pt-3 border-t">
+                    <button
+                      onClick={() => handleDeleteComplaint(complaint.id)}
+                      className="flex items-center text-sm text-red-600 hover:text-red-800"
+                      title="Delete complaint"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </button>
+                  </div>
+                )}
                 {user.role !== "STUDENT" && (
                   <div className="flex items-center justify-between pt-3 border-t">
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-600">Status:</span>
+
                       <select
                         className="input text-sm w-40"
                         value={complaint.status}

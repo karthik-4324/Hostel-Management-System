@@ -1,118 +1,135 @@
-import { useState, useEffect } from 'react'
-import { announcementsAPI } from '../services/api'
-import { Plus, Search, Megaphone, Heart, MessageCircle, Calendar } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from "react";
+import { announcementsAPI } from "../services/api";
+import {
+  Plus,
+  Search,
+  Megaphone,
+  Heart,
+  MessageCircle,
+  Calendar,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import toast from "react-hot-toast";
 
 const Announcements = () => {
-  const { user } = useAuth()
-  const [announcements, setAnnouncements] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState('')
-  const [filterPriority, setFilterPriority] = useState('')
-  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
+  const { user } = useAuth();
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterPriority, setFilterPriority] = useState("");
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    type: 'general',
-    priority: 'medium',
-    targetAudience: 'all',
+    title: "",
+    content: "",
+    type: "general",
+    priority: "medium",
+    targetAudience: "all",
     isSticky: false,
-    expiryDate: ''
-  })
+    expiryDate: "",
+  });
 
   useEffect(() => {
-    fetchAnnouncements()
-  }, [searchTerm, filterType, filterPriority])
+    fetchAnnouncements();
+  }, [searchTerm, filterType, filterPriority]);
 
   const fetchAnnouncements = async () => {
     try {
       const params = {
         search: searchTerm,
         type: filterType,
-        priority: filterPriority
-      }
-      
-      const response = await announcementsAPI.getAll(params)
+        priority: filterPriority,
+      };
+
+      const response = await announcementsAPI.getAll(params);
       if (response.data.success) {
-        setAnnouncements(response.data.data.announcements)
+        setAnnouncements(response.data.data.announcements);
       }
     } catch (error) {
-      toast.error('Failed to fetch announcements')
+      toast.error("Failed to fetch announcements");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCreateAnnouncement = () => {
     setFormData({
-      title: '',
-      content: '',
-      type: 'general',
-      priority: 'medium',
-      targetAudience: 'all',
+      title: "",
+      content: "",
+      type: "general",
+      priority: "medium",
+      targetAudience: "all",
       isSticky: false,
-      expiryDate: ''
-    })
-    setShowAnnouncementForm(true)
-  }
+      expiryDate: "",
+    });
+    setShowAnnouncementForm(true);
+  };
 
   const handleFormSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
+      // Format the date for Java LocalDateTime compatibility if it exists
+      let formattedExpiryDate = null;
+      if (formData.expiryDate) {
+        formattedExpiryDate = `${formData.expiryDate}T23:59:59`;
+      }
+
       const announcementData = {
         ...formData,
-        status: 'published'
-      }
-      
-      await announcementsAPI.create(announcementData)
-      toast.success('Announcement created successfully')
-      setShowAnnouncementForm(false)
-      fetchAnnouncements()
+        type: formData.type.toUpperCase(),
+        priority: formData.priority.toUpperCase(),
+        targetAudience: formData.targetAudience.toUpperCase(),
+        expiryDate: formattedExpiryDate,
+        status: "PUBLISHED",
+      };
+
+      await announcementsAPI.create(announcementData);
+      toast.success("Announcement created successfully");
+      setShowAnnouncementForm(false);
+      fetchAnnouncements();
     } catch (error) {
-      toast.error('Failed to create announcement')
+      toast.error("Failed to create announcement");
     }
-  }
+  };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    })
-  }
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'critical':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'high':
-        return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-200'
+      case "critical":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "high":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "low":
+        return "bg-green-100 text-green-800 border-green-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  }
+  };
 
   const handleLike = async (id) => {
     try {
-      await announcementsAPI.toggleLike(id)
-      fetchAnnouncements() // Refresh to get updated like count
+      await announcementsAPI.toggleLike(id);
+      fetchAnnouncements(); // Refresh to get updated like count
     } catch (error) {
-      toast.error('Failed to update like')
+      toast.error("Failed to update like");
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="loading-spinner"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -121,10 +138,12 @@ const Announcements = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Announcements</h1>
           <p className="text-gray-600">
-            {user.role === 'STUDENT' ? 'Stay updated with latest announcements' : 'Manage announcements'}
+            {user.role === "STUDENT"
+              ? "Stay updated with latest announcements"
+              : "Manage announcements"}
           </p>
         </div>
-        {(user.role === 'ADMIN' || user.role === 'WARDEN') && (
+        {user.role === "ADMIN" && (
           <button onClick={handleCreateAnnouncement} className="btn-primary">
             <Plus className="h-4 w-4 mr-2" />
             Create Announcement
@@ -174,9 +193,9 @@ const Announcements = () => {
 
           <div className="space-y-6">
             {announcements.map((announcement) => (
-              <div 
-                key={announcement.id} 
-                className={`border rounded-lg p-6 ${announcement.isSticky ? 'border-primary-200 bg-primary-50' : 'hover:shadow-md'} transition-shadow`}
+              <div
+                key={announcement.id}
+                className={`border rounded-lg p-6 ${announcement.isSticky ? "border-primary-200 bg-primary-50" : "hover:shadow-md"} transition-shadow`}
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -187,7 +206,9 @@ const Announcements = () => {
                           <span className="text-xs font-medium">PINNED</span>
                         </div>
                       )}
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(announcement.priority)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(announcement.priority)}`}
+                      >
                         {announcement.priority}
                       </span>
                       <span className="text-xs text-gray-500">
@@ -203,37 +224,44 @@ const Announcements = () => {
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {new Date(announcement.publishDate).toLocaleDateString()}
+                        {new Date(
+                          announcement.publishDate,
+                        ).toLocaleDateString()}
                       </div>
                       <div>
-                        By: {announcement.createdBy?.firstName} {announcement.createdBy?.lastName}
+                        By: {announcement.createdBy?.firstName}{" "}
+                        {announcement.createdBy?.lastName}
                       </div>
-                      <div>
-                        Views: {announcement.viewCount || 0}
-                      </div>
+                      <div>Views: {announcement.viewCount || 0}</div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex items-center space-x-4">
-                    <button 
+                    <button
                       onClick={() => handleLike(announcement.id)}
                       className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors"
                     >
                       <Heart className="h-4 w-4" />
-                      <span className="text-sm">{announcement.likeCount || 0}</span>
+                      <span className="text-sm">
+                        {announcement.likeCount || 0}
+                      </span>
                     </button>
                     <div className="flex items-center space-x-1 text-gray-500">
                       <MessageCircle className="h-4 w-4" />
-                      <span className="text-sm">{announcement.commentCount || 0}</span>
+                      <span className="text-sm">
+                        {announcement.commentCount || 0}
+                      </span>
                     </div>
                   </div>
-                  
-                  {(user.role === 'ADMIN' || user.role === 'WARDEN') && (
+
+                  {user.role === "ADMIN" && (
                     <div className="flex space-x-2">
                       <button className="btn-outline text-xs">Edit</button>
-                      <button className="text-red-600 hover:text-red-800 text-xs">Delete</button>
+                      <button className="text-red-600 hover:text-red-800 text-xs">
+                        Delete
+                      </button>
                     </div>
                   )}
                 </div>
@@ -244,12 +272,13 @@ const Announcements = () => {
           {announcements.length === 0 && (
             <div className="text-center py-8">
               <Megaphone className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No announcements</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No announcements
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
-                {user.role === 'STUDENT' 
-                  ? "No announcements have been posted yet." 
-                  : "Create your first announcement to get started."
-                }
+                {user.role === "STUDENT"
+                  ? "No announcements have been posted yet."
+                  : "Create your first announcement to get started."}
               </p>
             </div>
           )}
@@ -266,7 +295,9 @@ const Announcements = () => {
               </h3>
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Title</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Title
+                  </label>
                   <input
                     type="text"
                     name="title"
@@ -279,7 +310,9 @@ const Announcements = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Content</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Content
+                  </label>
                   <textarea
                     name="content"
                     value={formData.content}
@@ -293,7 +326,9 @@ const Announcements = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Type</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Type
+                    </label>
                     <select
                       name="type"
                       value={formData.type}
@@ -311,7 +346,9 @@ const Announcements = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Priority</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Priority
+                    </label>
                     <select
                       name="priority"
                       value={formData.priority}
@@ -327,7 +364,9 @@ const Announcements = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Target Audience</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Target Audience
+                  </label>
                   <select
                     name="targetAudience"
                     value={formData.targetAudience}
@@ -342,7 +381,9 @@ const Announcements = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Expiry Date (Optional)</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Expiry Date (Optional)
+                  </label>
                   <input
                     type="date"
                     name="expiryDate"
@@ -360,7 +401,9 @@ const Announcements = () => {
                     onChange={handleInputChange}
                     className="mr-2"
                   />
-                  <label className="text-sm font-medium text-gray-700">Pin this announcement</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Pin this announcement
+                  </label>
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4">
@@ -381,7 +424,7 @@ const Announcements = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Announcements
+export default Announcements;

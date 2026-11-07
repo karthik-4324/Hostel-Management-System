@@ -2,6 +2,9 @@ package com.hostel.service;
 
 import com.hostel.model.Room;
 import com.hostel.repository.RoomRepository;
+import com.hostel.model.Fee;
+import com.hostel.repository.FeeRepository;
+import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +29,9 @@ public class RoomService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    // @Autowired
+    // private FeeRepository feeRepository;
 
     public Map<String, Object> getAllRooms(int page, int limit, String search, String status, String block) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("roomNumber"));
@@ -115,7 +121,7 @@ public class RoomService {
         }
     }
 
-    public Room assignStudent(String roomId, String studentId, Integer bedNumber) {
+public Room assignStudent(String roomId, String studentId, Integer bedNumber) {
         Optional<Room> optionalRoom = roomRepository.findById(roomId);
         if (optionalRoom.isPresent()) {
             Room room = optionalRoom.get();

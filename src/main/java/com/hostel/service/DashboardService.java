@@ -57,7 +57,7 @@ public class DashboardService {
 
         // Complaint statistics
         Map<String, Object> complaintStats = new HashMap<>();
-        complaintStats.put("pending", complaintRepository.countByStatus("pending"));
+        complaintStats.put("pending", complaintRepository.countByStatus("PENDING"));
 
         // Calculate overdue complaints
         List<Complaint> overdueComplaints = complaintRepository.findOverdueComplaints(LocalDateTime.now());
@@ -66,8 +66,8 @@ public class DashboardService {
 
         // Fee statistics
         Map<String, Object> feeStats = new HashMap<>();
-        feeStats.put("pending", feeRepository.countByStatus("pending"));
-        feeStats.put("overdue", feeRepository.countByStatus("overdue"));
+        feeStats.put("pending", feeRepository.countByStatus("PENDING"));
+        feeStats.put("overdue", feeRepository.countByStatus("OVERDUE"));
 
         // Calculate total revenue (paid fees)
         List<Fee> paidFees = feeRepository.findPaidFeesByYear(LocalDate.now().getYear());
@@ -82,7 +82,7 @@ public class DashboardService {
 
         // Leave statistics
         Map<String, Object> leaveStats = new HashMap<>();
-        leaveStats.put("pending", leaveRepository.countByStatus("pending"));
+        leaveStats.put("pending", leaveRepository.countByStatus("PENDING"));
         stats.put("leaves", leaveStats);
 
         return stats;
@@ -120,7 +120,7 @@ public class DashboardService {
 
             // Leave stats
             Map<String, Object> leaveStats = new HashMap<>();
-            leaveStats.put("active", leaveRepository.countByStudentIdAndStatus(studentId, "approved"));
+            leaveStats.put("active", leaveRepository.countByStudentIdAndStatus(studentId, "APPROVED"));
             stats.put("leaves", leaveStats);
 
             data.put("stats", stats);
@@ -147,7 +147,7 @@ public class DashboardService {
         stats.put("rooms", roomStats);
 
         Map<String, Object> complaintStats = new HashMap<>();
-        complaintStats.put("pending", complaintRepository.countByStatus("pending"));
+        complaintStats.put("pending", complaintRepository.countByStatus("PENDING"));
 
         // Calculate urgent complaints
         List<Complaint> urgentComplaints = complaintRepository.findUrgentComplaints();
@@ -155,7 +155,7 @@ public class DashboardService {
         stats.put("complaints", complaintStats);
 
         Map<String, Object> leaveStats = new HashMap<>();
-        leaveStats.put("pending", leaveRepository.countByStatus("pending"));
+        leaveStats.put("pending", leaveRepository.countByStatus("PENDING"));
 
         // Calculate overdue leaves
         List<Leave> overdueLeaves = leaveRepository.findOverdueLeaves(LocalDate.now());
