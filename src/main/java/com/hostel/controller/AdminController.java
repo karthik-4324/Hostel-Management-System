@@ -173,6 +173,28 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/students/{id}/vacate-room")
+    public ResponseEntity<?> vacateRoom(@PathVariable String id) {
+        try {
+            if (!isAdmin()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "Access denied"));
+            }
+
+            userService.vacateRoom(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Room vacated successfully");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            String message = e.getMessage() == null ? "Failed to vacate room" : e.getMessage();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", message));
+        }
+    }
+
     @GetMapping("/reports")
     public ResponseEntity<?> generateReport(
             @RequestParam String type,

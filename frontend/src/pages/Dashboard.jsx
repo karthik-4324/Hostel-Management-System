@@ -50,6 +50,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleLeaveRoom = async () => {
+    if (
+      !window.confirm(
+        "Leave your room? You can only leave after paying all pending fees.",
+      )
+    )
+      return;
+    try {
+      await dashboardAPI.leaveRoom();
+      toast.success("You have left your room");
+      fetchDashboardData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to leave room");
+    }
+  };
+
   const handleGenerateReport = async () => {
     try {
       const response = await adminAPI.generateReport(reportParams);
@@ -357,6 +373,14 @@ const Dashboard = () => {
                 <CreditCard className="h-4 w-4 mr-2" />
                 View Fee Details
               </button>
+              {stats?.student?.roomNumber && (
+                <button
+                  onClick={handleLeaveRoom}
+                  className="btn-outline w-full"
+                >
+                  Leave Room
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -1,47 +1,51 @@
 import { useState, useEffect } from "react";
-import { complaintsAPI } from "../services/api";
+import { complaintsAPI, studentsAPI, wardenAPI } from "../services/api";
 import {
   Plus,
   Search,
   MessageSquare,
   Clock,
   CheckCircle,
-  Upload,
   Trash2,
+  Edit,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
 
+const emptyForm = {
+  title: "",
+  description: "",
+  category: "",
+  priority: "medium",
+  location: "",
+};
+
 const Complaints = () => {
   const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [showComplaintForm, setShowComplaintForm] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "",
-    priority: "medium",
-    location: "",
-  });
-  const [selectedImages, setSelectedImages] = useState([]);
+  const [editingComplaint, setEditingComplaint] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState(emptyForm);
 
   useEffect(() => {
     fetchComplaints();
-  }, [searchTerm, filterStatus, filterCategory]);
+  }, []);
+
+  useEffect(() => {
+    if (user.role !== "STUDENT") {
+      fetchStudents();
+    }
+  }, []);
 
   const fetchComplaints = async () => {
     try {
-      const params = {
-        search: searchTerm,
-        status: filterStatus,
-        category: filterCategory,
-      };
-
-      const response = await complaintsAPI.getAll(params);
+      const response = await complaintsAPI.getAll({ limit: 100 });
       if (response.data.success) {
         setComplaints(response.data.data.complaints);
       }
@@ -51,6 +55,36 @@ const Complaints = () => {
       setLoading(false);
     }
   };
+
+  const fetchStudents = async () => {
+    try {
+      const params = { page: 1, limit: 100 };
+      const response =
+        user.role === "WARDEN"
+          ? await wardenAPI.getStudents(params)
+          : await studentsAPI.getAll(params);
+      if (response.data.success) {
+        setStudents(response.data.data.students);
+      }
+    } catch (error) {
+      console.error("Failed to fetch students");
+    }
+  };
+
+  const findStudent = (id) => students.find((s) => s.id === id);
+
+  const filteredComplaints = complaints.filter((c) => {
+    if (filterStatus && c.status?.toLowerCase() !== filterStatus) return false;
+    if (filterCategory && c.category?.toLowerCase() !== filterCategory)
+      return false;
+    if (searchTerm.trim()) {
+      const s = findStudent(c.reportedBy);
+      const text =
+        `${c.title} ${c.description} ${c.complaintId} ${s?.firstName ?? ""} ${s?.lastName ?? ""} ${s?.studentId ?? ""}`.toLowerCase();
+      if (!text.includes(searchTerm.toLowerCase())) return false;
+    }
+    return true;
+  });
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -77,50 +111,56 @@ const Complaints = () => {
   };
 
   const handleSubmitComplaint = () => {
+    setEditingComplaint(null);
+    setFormData(emptyForm);
+    setShowComplaintForm(true);
+  };
+
+  const handleEditComplaint = (complaint) => {
+    setEditingComplaint(complaint);
     setFormData({
-      title: "",
-      description: "",
-      category: "",
-      priority: "medium",
-      location: "",
+      title: complaint.title || "",
+      description: complaint.description || "",
+      category: complaint.category || "",
+      priority: (complaint.priority || "medium").toLowerCase(),
+      location: complaint.location || "",
     });
-    setSelectedImages([]);
     setShowComplaintForm(true);
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      const complaintData = new FormData();
-      Object.keys(formData).forEach((key) => {
-        complaintData.append(key, formData[key]);
-      });
-
-      // Add images if any
-      selectedImages.forEach((image, index) => {
-        complaintData.append("images", image);
-      });
-
-      await complaintsAPI.create(complaintData);
-      toast.success("Complaint submitted successfully");
+      const payload = {
+        ...formData,
+        priority: formData.priority.toUpperCase(),
+      };
+      if (editingComplaint) {
+        await complaintsAPI.update(editingComplaint.id, payload);
+        toast.success("Complaint updated successfully");
+      } else {
+        await complaintsAPI.create(payload);
+        toast.success("Complaint submitted successfully");
+      }
       setShowComplaintForm(false);
       fetchComplaints();
     } catch (error) {
-      toast.error("Failed to submit complaint");
+      toast.error(
+        error.response?.data?.message ||
+          (editingComplaint
+            ? "Failed to update complaint"
+            : "Failed to submit complaint"),
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    setSelectedImages(files);
+    setFormData({ ...formData, [name]: value });
   };
 
   const getStatusColor = (status) => {
@@ -133,13 +173,15 @@ const Complaints = () => {
         return "bg-green-100 text-green-800";
       case "closed":
         return "bg-gray-100 text-gray-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPriorityColor = (priority) => {
-    switch (priority) {
+    switch (priority?.toLowerCase()) {
       case "urgent":
         return "bg-red-100 text-red-800";
       case "high":
@@ -203,6 +245,7 @@ const Complaints = () => {
               <option value="in_progress">In Progress</option>
               <option value="resolved">Resolved</option>
               <option value="closed">Closed</option>
+              <option value="rejected">Rejected</option>
             </select>
             <select
               className="input w-full md:w-48"
@@ -222,102 +265,124 @@ const Complaints = () => {
           </div>
 
           <div className="space-y-4">
-            {complaints.map((complaint) => (
-              <div
-                key={complaint.id}
-                className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {complaint.title}
-                      </h3>
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(complaint.status)}`}
-                      >
-                        {complaint.status.replace("_", " ")}
-                      </span>
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(complaint.priority)}`}
-                      >
-                        {complaint.priority}
-                      </span>
+            {filteredComplaints.map((complaint) => {
+              const student = findStudent(complaint.reportedBy);
+              const status = complaint.status?.toUpperCase();
+              return (
+                <div
+                  key={complaint.id}
+                  className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {complaint.title}
+                        </h3>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(complaint.status)}`}
+                        >
+                          {complaint.status?.replace("_", " ")}
+                        </span>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(complaint.priority)}`}
+                        >
+                          {complaint.priority}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 mb-2">
+                        {complaint.description}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+                        <span>ID: {complaint.complaintId}</span>
+                        <span>Category: {complaint.category}</span>
+                        {complaint.location && (
+                          <span>Location: {complaint.location}</span>
+                        )}
+                        <span>
+                          Reported:{" "}
+                          {new Date(complaint.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-gray-600 mb-2">
-                      {complaint.description}
-                    </p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>ID: {complaint.complaintId}</span>
-                      <span>Category: {complaint.category}</span>
-                      {complaint.roomNumber && (
-                        <span>Room: {complaint.roomNumber.roomNumber}</span>
-                      )}
-                      <span>
-                        Reported:{" "}
-                        {new Date(complaint.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {complaint.status === "PENDING" && (
-                      <Clock className="h-5 w-5 text-yellow-500" />
-                    )}
-                    {complaint.status === "IN_PROGRESS" && (
-                      <MessageSquare className="h-5 w-5 text-blue-500" />
-                    )}
-                    {complaint.status === "RESOLVED" && (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    )}
-                  </div>
-                </div>
-                {user.role === "STUDENT" && complaint.status === "PENDING" && (
-                  <div className="flex justify-end pt-3 border-t">
-                    <button
-                      onClick={() => handleDeleteComplaint(complaint.id)}
-                      className="flex items-center text-sm text-red-600 hover:text-red-800"
-                      title="Delete complaint"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </button>
-                  </div>
-                )}
-                {user.role !== "STUDENT" && (
-                  <div className="flex items-center justify-between pt-3 border-t">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">Status:</span>
-
-                      <select
-                        className="input text-sm w-40"
-                        value={complaint.status}
-                        onChange={(e) =>
-                          handleStatusChange(complaint.id, e.target.value)
-                        }
-                      >
-                        <option value="PENDING">Pending</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="RESOLVED">Resolved</option>
-                        <option value="CLOSED">Closed</option>
-                        <option value="REJECTED">Rejected</option>
-                      </select>
+                      {status === "PENDING" && (
+                        <Clock className="h-5 w-5 text-yellow-500" />
+                      )}
+                      {status === "IN_PROGRESS" && (
+                        <MessageSquare className="h-5 w-5 text-blue-500" />
+                      )}
+                      {status === "RESOLVED" && (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      )}
                     </div>
-                    {user.role === "ADMIN" && (
+                  </div>
+
+                  {user.role === "STUDENT" && status === "PENDING" && (
+                    <div className="flex justify-end space-x-4 pt-3 border-t">
+                      <button
+                        onClick={() => handleEditComplaint(complaint)}
+                        className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                        title="Edit complaint"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </button>
                       <button
                         onClick={() => handleDeleteComplaint(complaint.id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="flex items-center text-sm text-red-600 hover:text-red-800"
                         title="Delete complaint"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
                       </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+                    </div>
+                  )}
+
+                  {user.role !== "STUDENT" && (
+                    <div className="flex items-center justify-between pt-3 border-t">
+                      <div className="text-sm text-gray-600">
+                        Reported by:{" "}
+                        {student
+                          ? `${student.firstName} ${student.lastName} (${student.studentId})`
+                          : "Unknown student"}
+                        {student?.roomNumber
+                          ? ` · Room ${student.roomNumber}`
+                          : ""}
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm text-gray-600">Status:</span>
+                        <select
+                          className="input text-sm w-40"
+                          value={status}
+                          onChange={(e) =>
+                            handleStatusChange(complaint.id, e.target.value)
+                          }
+                        >
+                          <option value="PENDING">Pending</option>
+                          <option value="IN_PROGRESS">In Progress</option>
+                          <option value="RESOLVED">Resolved</option>
+                          <option value="CLOSED">Closed</option>
+                          <option value="REJECTED">Rejected</option>
+                        </select>
+                        {user.role === "ADMIN" && (
+                          <button
+                            onClick={() => handleDeleteComplaint(complaint.id)}
+                            className="text-red-600 hover:text-red-800"
+                            title="Delete complaint"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
-          {complaints.length === 0 && (
+          {filteredComplaints.length === 0 && (
             <div className="text-center py-8">
               <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
@@ -326,7 +391,7 @@ const Complaints = () => {
               <p className="mt-1 text-sm text-gray-500">
                 {user.role === "STUDENT"
                   ? "You haven't submitted any complaints yet."
-                  : "No complaints have been submitted yet."}
+                  : "No complaints match your search."}
               </p>
             </div>
           )}
@@ -339,7 +404,7 @@ const Complaints = () => {
           <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Submit New Complaint
+                {editingComplaint ? "Edit Complaint" : "Submit New Complaint"}
               </h3>
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div>
@@ -352,6 +417,7 @@ const Complaints = () => {
                     value={formData.title}
                     onChange={handleInputChange}
                     className="input mt-1"
+                    maxLength={100}
                     required
                     placeholder="Brief description of the issue"
                   />
@@ -367,6 +433,7 @@ const Complaints = () => {
                     onChange={handleInputChange}
                     className="input mt-1"
                     rows="4"
+                    maxLength={1000}
                     required
                     placeholder="Detailed description of the complaint"
                   />
@@ -428,40 +495,6 @@ const Complaints = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Images (Optional)
-                  </label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                    <div className="space-y-1 text-center">
-                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500">
-                          <span>Upload images</span>
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="sr-only"
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG, GIF up to 10MB each
-                      </p>
-                    </div>
-                  </div>
-                  {selectedImages.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600">
-                        {selectedImages.length} file(s) selected
-                      </p>
-                    </div>
-                  )}
-                </div>
-
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
@@ -470,8 +503,16 @@ const Complaints = () => {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary">
-                    Submit Complaint
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={submitting}
+                  >
+                    {submitting
+                      ? "Saving..."
+                      : editingComplaint
+                        ? "Save Changes"
+                        : "Submit Complaint"}
                   </button>
                 </div>
               </form>

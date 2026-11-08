@@ -52,6 +52,7 @@ export const studentsAPI = {
     api.put(`/api/admin/students/${id}`, studentData),
   delete: (id) => api.delete(`/api/admin/students/${id}`),
   assignRoom: (data) => api.post("/api/admin/assign-room", data),
+  vacateRoom: (id) => api.post(`/api/admin/students/${id}/vacate-room`),
 };
 
 // Warden API
@@ -135,6 +136,7 @@ export const announcementsAPI = {
 // Dashboard API
 export const dashboardAPI = {
   getAdminStats: () => api.get("/api/admin/dashboard"),
+  leaveRoom: () => api.post("/api/dashboard/student/leave-room"),
   getStudentDashboard: () => api.get("/api/dashboard/student"),
   getWardenDashboard: () => api.get("/api/warden/dashboard"),
 };

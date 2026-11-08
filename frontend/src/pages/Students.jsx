@@ -138,6 +138,22 @@ const Students = () => {
     setShowRoomAllocation(true);
   };
 
+  const handleVacateRoom = async (student) => {
+    if (
+      !window.confirm(
+        `Remove ${student.firstName} from room ${student.roomNumber}?`,
+      )
+    )
+      return;
+    try {
+      await studentsAPI.vacateRoom(student.id);
+      toast.success("Room vacated");
+      fetchStudents();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to vacate room");
+    }
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -320,16 +336,25 @@ const Students = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
-                        {!student.roomId &&
-                          user.role === "ADMIN" && (
-                            <button
-                              onClick={() => handleAllocateRoom(student)}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="Allocate Room"
-                            >
-                              <Home className="h-4 w-4" />
-                            </button>
-                          )}
+                        {!student.roomId && user.role === "ADMIN" && (
+                          <button
+                            onClick={() => handleAllocateRoom(student)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="Allocate Room"
+                          >
+                            <Home className="h-4 w-4" />
+                          </button>
+                        )}
+
+                        {user.role === "ADMIN" && student.roomId && (
+                          <button
+                            onClick={() => handleVacateRoom(student)}
+                            className="text-xs text-orange-600 hover:text-orange-800"
+                            title="Remove from room"
+                          >
+                            Vacate
+                          </button>
+                        )}
                         {user.role === "ADMIN" && (
                           <button
                             onClick={() => handleEditStudent(student)}

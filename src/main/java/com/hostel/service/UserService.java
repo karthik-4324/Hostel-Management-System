@@ -98,6 +98,7 @@ public class UserService {
                 });
             }
         }
+        feeRepository.deleteAll(feeRepository.findByStudentId(id));
         userRepository.deleteById(id);
     }
 
@@ -216,6 +217,37 @@ public class UserService {
         userRepository.save(user);
         createRoomFee(studentId, room);
         return true;
+    }
+
+    public void vacateRoom(String studentId) {
+        User user = userRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        String roomId = user.getRoomId();
+        if (roomId == null || roomId.isEmpty()) {
+            throw new RuntimeException("Student does not have a room");
+        }
+
+        double due = feeRepository.findStudentPendingFeesAmounts(studentId).stream()
+                .mapToDouble(f -> f.getBalanceAmount() == null ? 0 : f.getBalanceAmount())
+                .sum();
+        if (due > 0) {
+            throw new RuntimeException("Clear the pending fees of ₹" + String.format("%.2f", due)
+                    + " before leaving the room");
+        }
+
+        roomRepository.findById(roomId).ifPresent(room -> {
+            room.getOccupants().removeIf(o -> studentId.equals(o.getStudentId()));
+            room.setCurrentOccupancy(room.getOccupants().size());
+            if ("OCCUPIED".equals(room.getStatus())
+                    && room.getCurrentOccupancy() < room.getCapacity()) {
+                room.setStatus("AVAILABLE");
+            }
+            roomRepository.save(room);
+        });
+
+        user.setRoomId(null);
+        userRepository.save(user);
     }
 
     private void createRoomFee(String studentId, Room room) {

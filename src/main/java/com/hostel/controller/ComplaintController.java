@@ -179,6 +179,52 @@ public class ComplaintController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateComplaint(@PathVariable String id, @RequestBody Complaint details,
+            HttpServletRequest request) {
+        try {
+            String userId = (String) request.getAttribute("userId");
+            String userRole = (String) request.getAttribute("userRole");
+
+            Optional<Complaint> complaintOpt = complaintService.getComplaintById(id);
+            if (complaintOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "Complaint not found"));
+            }
+            Complaint complaint = complaintOpt.get();
+
+            if (!"STUDENT".equals(userRole) || userId == null || !userId.equals(complaint.getReportedBy())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "You can only edit your own complaints"));
+            }
+            if (!"PENDING".equals(complaint.getStatus())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "Only pending complaints can be edited"));
+            }
+            if (details.getTitle() == null || details.getTitle().trim().isEmpty()
+                    || details.getDescription() == null || details.getDescription().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Title and description are required"));
+            }
+            if (details.getTitle().length() > 100 || details.getDescription().length() > 1000) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Title or description is too long"));
+            }
+
+            Complaint updated = complaintService.updateComplaint(id, details);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Complaint updated successfully");
+            response.put("data", Map.of("complaint", updated));
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Failed to update complaint: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/stats")
     public ResponseEntity<?> getComplaintStats(HttpServletRequest request) {
         try {

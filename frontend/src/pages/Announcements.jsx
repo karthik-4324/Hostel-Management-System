@@ -5,29 +5,40 @@ import {
   Search,
   Megaphone,
   Heart,
-  MessageCircle,
   Calendar,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
 
+const emptyForm = {
+  title: "",
+  content: "",
+  type: "general",
+  priority: "medium",
+  targetAudience: "all",
+  isSticky: false,
+  expiryDate: "",
+};
+
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 const Announcements = () => {
   const { user } = useAuth();
+  const isAdmin = user.role === "ADMIN";
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
-  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    type: "general",
-    priority: "medium",
-    targetAudience: "all",
-    isSticky: false,
-    expiryDate: "",
-  });
+  const [showForm, setShowForm] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState(emptyForm);
 
   useEffect(() => {
     fetchAnnouncements();
@@ -39,11 +50,17 @@ const Announcements = () => {
         search: searchTerm,
         type: filterType,
         priority: filterPriority,
+        limit: 100,
       };
 
       const response = await announcementsAPI.getAll(params);
       if (response.data.success) {
-        setAnnouncements(response.data.data.announcements);
+        const list = response.data.data.announcements;
+        // pinned announcements first
+        list.sort(
+          (a, b) => Number(b.sticky ?? false) - Number(a.sticky ?? false),
+        );
+        setAnnouncements(list);
       }
     } catch (error) {
       toast.error("Failed to fetch announcements");
@@ -53,42 +70,84 @@ const Announcements = () => {
   };
 
   const handleCreateAnnouncement = () => {
+    setEditingAnnouncement(null);
+    setFormData(emptyForm);
+    setShowForm(true);
+  };
+
+  const handleEditAnnouncement = (announcement) => {
+    setEditingAnnouncement(announcement);
     setFormData({
-      title: "",
-      content: "",
-      type: "general",
-      priority: "medium",
-      targetAudience: "all",
-      isSticky: false,
-      expiryDate: "",
+      title: announcement.title || "",
+      content: announcement.content || "",
+      type: (announcement.type || "general").toLowerCase(),
+      priority: (announcement.priority || "medium").toLowerCase(),
+      targetAudience: (announcement.targetAudience || "all").toLowerCase(),
+      isSticky: announcement.sticky ?? false,
+      expiryDate: announcement.expiryDate
+        ? announcement.expiryDate.slice(0, 10)
+        : "",
     });
-    setShowAnnouncementForm(true);
+    setShowForm(true);
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      // Format the date for Java LocalDateTime compatibility if it exists
-      let formattedExpiryDate = null;
-      if (formData.expiryDate) {
-        formattedExpiryDate = `${formData.expiryDate}T23:59:59`;
-      }
-
-      const announcementData = {
-        ...formData,
+      const payload = {
+        title: formData.title,
+        content: formData.content,
         type: formData.type.toUpperCase(),
         priority: formData.priority.toUpperCase(),
         targetAudience: formData.targetAudience.toUpperCase(),
-        expiryDate: formattedExpiryDate,
-        status: "PUBLISHED",
+        sticky: formData.isSticky,
+        expiryDate: formData.expiryDate
+          ? `${formData.expiryDate}T23:59:59`
+          : null,
       };
 
-      await announcementsAPI.create(announcementData);
-      toast.success("Announcement created successfully");
-      setShowAnnouncementForm(false);
+      if (editingAnnouncement) {
+        await announcementsAPI.update(editingAnnouncement.id, payload);
+        toast.success("Announcement updated successfully");
+      } else {
+        await announcementsAPI.create(payload);
+        toast.success("Announcement created successfully");
+      }
+      setShowForm(false);
       fetchAnnouncements();
     } catch (error) {
-      toast.error("Failed to create announcement");
+      toast.error(
+        error.response?.data?.message ||
+          (editingAnnouncement
+            ? "Failed to update announcement"
+            : "Failed to create announcement"),
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this announcement?")) return;
+    try {
+      await announcementsAPI.delete(id);
+      toast.success("Announcement deleted");
+      fetchAnnouncements();
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to delete announcement",
+      );
+    }
+  };
+
+  const handleLike = async (id) => {
+    try {
+      await announcementsAPI.toggleLike(id);
+      fetchAnnouncements();
+    } catch (error) {
+      toast.error("Failed to update like");
     }
   };
 
@@ -101,7 +160,7 @@ const Announcements = () => {
   };
 
   const getPriorityColor = (priority) => {
-    switch (priority) {
+    switch (priority?.toLowerCase()) {
       case "critical":
         return "bg-red-100 text-red-800 border-red-200";
       case "high":
@@ -115,14 +174,7 @@ const Announcements = () => {
     }
   };
 
-  const handleLike = async (id) => {
-    try {
-      await announcementsAPI.toggleLike(id);
-      fetchAnnouncements(); // Refresh to get updated like count
-    } catch (error) {
-      toast.error("Failed to update like");
-    }
-  };
+  const isExpired = (a) => a.expiryDate && new Date(a.expiryDate) < new Date();
 
   if (loading) {
     return (
@@ -138,12 +190,12 @@ const Announcements = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Announcements</h1>
           <p className="text-gray-600">
-            {user.role === "STUDENT"
-              ? "Stay updated with latest announcements"
-              : "Manage announcements"}
+            {isAdmin
+              ? "Create and manage announcements"
+              : "Stay updated with the latest announcements"}
           </p>
         </div>
-        {user.role === "ADMIN" && (
+        {isAdmin && (
           <button onClick={handleCreateAnnouncement} className="btn-primary">
             <Plus className="h-4 w-4 mr-2" />
             Create Announcement
@@ -195,12 +247,12 @@ const Announcements = () => {
             {announcements.map((announcement) => (
               <div
                 key={announcement.id}
-                className={`border rounded-lg p-6 ${announcement.isSticky ? "border-primary-200 bg-primary-50" : "hover:shadow-md"} transition-shadow`}
+                className={`border rounded-lg p-6 ${announcement.sticky ? "border-primary-200 bg-primary-50" : "hover:shadow-md"} transition-shadow`}
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      {announcement.isSticky && (
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                      {announcement.sticky && (
                         <div className="flex items-center text-primary-600">
                           <Megaphone className="h-4 w-4 mr-1" />
                           <span className="text-xs font-medium">PINNED</span>
@@ -212,8 +264,18 @@ const Announcements = () => {
                         {announcement.priority}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {announcement.type.toUpperCase()}
+                        {announcement.type?.toUpperCase()}
                       </span>
+                      {isAdmin && (
+                        <span className="text-xs text-gray-500">
+                          For: {announcement.targetAudience}
+                        </span>
+                      )}
+                      {isAdmin && isExpired(announcement) && (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+                          EXPIRED
+                        </span>
+                      )}
                     </div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       {announcement.title}
@@ -221,45 +283,52 @@ const Announcements = () => {
                     <p className="text-gray-600 mb-4 leading-relaxed">
                       {announcement.content}
                     </p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
                         {new Date(
                           announcement.publishDate,
                         ).toLocaleDateString()}
                       </div>
-                      <div>
-                        By: {announcement.createdBy?.firstName}{" "}
-                        {announcement.createdBy?.lastName}
-                      </div>
+                      <div>By: {announcement.authorName || "Admin"}</div>
                       <div>Views: {announcement.viewCount || 0}</div>
+                      {announcement.expiryDate && (
+                        <div>
+                          Expires:{" "}
+                          {new Date(
+                            announcement.expiryDate,
+                          ).toLocaleDateString()}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center space-x-4">
-                    <button
-                      onClick={() => handleLike(announcement.id)}
-                      className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors"
-                    >
-                      <Heart className="h-4 w-4" />
-                      <span className="text-sm">
-                        {announcement.likeCount || 0}
-                      </span>
-                    </button>
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <MessageCircle className="h-4 w-4" />
-                      <span className="text-sm">
-                        {announcement.commentCount || 0}
-                      </span>
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => handleLike(announcement.id)}
+                    className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors"
+                  >
+                    <Heart className="h-4 w-4" />
+                    <span className="text-sm">
+                      {announcement.likeCount || 0}
+                    </span>
+                  </button>
 
-                  {user.role === "ADMIN" && (
-                    <div className="flex space-x-2">
-                      <button className="btn-outline text-xs">Edit</button>
-                      <button className="text-red-600 hover:text-red-800 text-xs">
+                  {isAdmin && (
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={() => handleEditAnnouncement(announcement)}
+                        className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(announcement.id)}
+                        className="flex items-center text-sm text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
                         Delete
                       </button>
                     </div>
@@ -276,9 +345,9 @@ const Announcements = () => {
                 No announcements
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                {user.role === "STUDENT"
-                  ? "No announcements have been posted yet."
-                  : "Create your first announcement to get started."}
+                {isAdmin
+                  ? "Create your first announcement to get started."
+                  : "No announcements have been posted yet."}
               </p>
             </div>
           )}
@@ -286,12 +355,14 @@ const Announcements = () => {
       </div>
 
       {/* Announcement Form Modal */}
-      {showAnnouncementForm && (
+      {showForm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Create New Announcement
+                {editingAnnouncement
+                  ? "Edit Announcement"
+                  : "Create New Announcement"}
               </h3>
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div>
@@ -304,6 +375,7 @@ const Announcements = () => {
                     value={formData.title}
                     onChange={handleInputChange}
                     className="input mt-1"
+                    maxLength={200}
                     required
                     placeholder="Announcement title"
                   />
@@ -319,6 +391,7 @@ const Announcements = () => {
                     onChange={handleInputChange}
                     className="input mt-1"
                     rows="4"
+                    maxLength={2000}
                     required
                     placeholder="Announcement content"
                   />
@@ -389,6 +462,7 @@ const Announcements = () => {
                     name="expiryDate"
                     value={formData.expiryDate}
                     onChange={handleInputChange}
+                    min={todayStr()}
                     className="input mt-1"
                   />
                 </div>
@@ -409,13 +483,21 @@ const Announcements = () => {
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowAnnouncementForm(false)}
+                    onClick={() => setShowForm(false)}
                     className="btn-outline"
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary">
-                    Create Announcement
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={submitting}
+                  >
+                    {submitting
+                      ? "Saving..."
+                      : editingAnnouncement
+                        ? "Save Changes"
+                        : "Create Announcement"}
                   </button>
                 </div>
               </form>
