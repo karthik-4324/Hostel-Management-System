@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { dashboardAPI, adminAPI } from "../services/api";
 import {
@@ -7,14 +8,106 @@ import {
   MessageSquare,
   CreditCard,
   Calendar,
-  TrendingUp,
   FileText,
   Download,
+  Megaphone,
+  ChevronRight,
+  Zap,
+  BedDouble,
+  IndianRupee,
+  LogOut,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+const themes = {
+  blue: {
+    bg: "#C9D8F0",
+    border: "#7FA3E6",
+    icon: "#4A6DB5",
+    chevron: "#9DB7EA",
+  },
+  purple: {
+    bg: "#DEC8EE",
+    border: "#9C5BCB",
+    icon: "#7A2FBE",
+    chevron: "#BE98E3",
+  },
+  green: {
+    bg: "#C2E7D6",
+    border: "#49B186",
+    icon: "#2E9E73",
+    chevron: "#84CCAD",
+  },
+  amber: {
+    bg: "#F8E3B8",
+    border: "#E9A83A",
+    icon: "#E58A12",
+    chevron: "#F0BB5E",
+  },
+};
+
+const formatDate = (value) =>
+  value
+    ? new Date(value).toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      })
+    : "";
+
+const StatCard = ({ title, value, icon: Icon, theme, onClick, small }) => (
+  <div
+    onClick={onClick}
+    style={{ backgroundColor: theme.bg, borderColor: theme.border }}
+    className={`flex items-center rounded-2xl border-2 p-5 shadow-sm transition-shadow ${
+      onClick ? "cursor-pointer hover:shadow-md" : ""
+    }`}
+  >
+    <span
+      style={{ backgroundColor: theme.icon }}
+      className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full text-white"
+    >
+      <Icon className="h-7 w-7" />
+    </span>
+    <span className="ml-4 min-w-0 flex-1">
+      <span className="block text-sm text-gray-600">{title}</span>
+      <span
+        className={`block truncate font-bold text-[#0B1B45] ${
+          small ? "text-xl" : "text-3xl"
+        }`}
+      >
+        {value}
+      </span>
+    </span>
+    {onClick && (
+      <span
+        style={{ backgroundColor: theme.chevron }}
+        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-white"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </span>
+    )}
+  </div>
+);
+
+const ActionButton = ({ icon: Icon, label, onClick, primary }) => (
+  <button
+    onClick={onClick}
+    className={`flex w-full items-center rounded-xl border px-4 py-3 text-sm font-semibold transition-colors ${
+      primary
+        ? "border-[#1E2F94] bg-[#1E2F94] text-white hover:bg-[#18267A]"
+        : "border-gray-300 bg-white text-[#0B1B45] hover:bg-gray-50"
+    }`}
+  >
+    <Icon className="h-5 w-5" />
+    <span className="flex-1 text-center">{label}</span>
+    <ChevronRight className="h-4 w-4" />
+  </button>
+);
+
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -71,7 +164,6 @@ const Dashboard = () => {
       const response = await adminAPI.generateReport(reportParams);
       if (response.data.success) {
         toast.success("Report generated successfully");
-        // Handle download or display report URL
         if (response.data.data.url) {
           window.open(response.data.data.url, "_blank");
         }
@@ -84,10 +176,7 @@ const Dashboard = () => {
 
   const handleReportParamChange = (e) => {
     const { name, value } = e.target;
-    setReportParams({
-      ...reportParams,
-      [name]: value,
-    });
+    setReportParams({ ...reportParams, [name]: value });
   };
 
   if (loading) {
@@ -98,247 +187,223 @@ const Dashboard = () => {
     );
   }
 
-  const renderAdminDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {user.firstName}!</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Students
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats?.students?.total || 0}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Building className="h-8 w-8 text-green-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Room Occupancy
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats?.rooms?.occupancyRate || 0}%
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <MessageSquare className="h-8 w-8 text-yellow-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Pending Complaints
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats?.complaints?.pending || 0}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <CreditCard className="h-8 w-8 text-red-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Pending Revenue
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    ₹{stats?.fees?.pendingRevenue || 0}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Recent Activity</h3>
-          </div>
-          <div className="card-content">
-            <p className="text-gray-500">No recent activity to display.</p>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Quick Actions</h3>
-          </div>
-          <div className="card-content">
-            <div className="space-y-3">
-              <button
-                onClick={() => (window.location.href = "/students")}
-                className="btn-primary w-full"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Manage Students
-              </button>
-              <button
-                onClick={() => setShowReportModal(true)}
-                className="btn-outline w-full"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Generate Report
-              </button>
-              <button
-                onClick={() => (window.location.href = "/announcements")}
-                className="btn-outline w-full"
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Send Announcement
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+  const heading = (title, subtitle) => (
+    <div>
+      <h1 className="text-4xl font-extrabold text-[#0B1B45]">{title}</h1>
+      <p className="mt-1 text-gray-600">{subtitle}</p>
     </div>
   );
 
-  const renderStudentDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800 tracking-tight mb-1">
-          Student Dashboard
-        </h1>
-        <p className="text-gray-600">Welcome back, {user.firstName}!</p>
+  const renderStaffDashboard = () => {
+    const isWarden = user.role === "WARDEN";
+    const s = isWarden ? stats?.stats : stats;
+    const totalStudents =
+      typeof s?.students === "number" ? s.students : (s?.students?.total ?? 0);
+    const rooms = s?.rooms;
+    const occupancy =
+      rooms?.occupancyRate ??
+      (rooms?.total ? (rooms.occupied / rooms.total) * 100 : 0);
+
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-4xl font-extrabold text-[#0B1B45]">
+            Welcome back,{" "}
+            <span className="text-[#1D40B8]">{user.firstName}</span>!
+          </h1>
+          <p className="mt-1 text-gray-600">
+            {isWarden ? "Warden dashboard" : "Admin dashboard"}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+          <StatCard
+            title="Total Students"
+            value={totalStudents}
+            icon={Users}
+            theme={themes.blue}
+            onClick={() => navigate("/students")}
+          />
+          <StatCard
+            title="Room Occupancy"
+            value={`${Math.round(occupancy)}%`}
+            icon={Building}
+            theme={themes.green}
+            onClick={() => navigate("/rooms")}
+          />
+          <StatCard
+            title="Pending Complaints"
+            value={s?.complaints?.pending ?? 0}
+            icon={MessageSquare}
+            theme={themes.amber}
+            onClick={() => navigate("/complaints")}
+          />
+          {isWarden ? (
+            <StatCard
+              title="Pending Leaves"
+              value={s?.leaves?.pending ?? 0}
+              icon={Calendar}
+              theme={themes.purple}
+              onClick={() => navigate("/leaves")}
+            />
+          ) : (
+            <StatCard
+              title="Pending Revenue"
+              value={`₹${Number(s?.fees?.pendingRevenue ?? 0).toLocaleString("en-IN")}`}
+              icon={IndianRupee}
+              theme={themes.purple}
+              onClick={() => navigate("/fees")}
+            />
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3 rounded-2xl bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center">
+              <Megaphone className="mr-3 h-6 w-6 text-[#0B1B45]" />
+              <h3 className="text-lg font-bold text-[#0B1B45]">
+                Recent Activity
+              </h3>
+            </div>
+            <p className="text-gray-500">No recent activity to display.</p>
+          </div>
+
+          <div className="lg:col-span-2 rounded-2xl bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center">
+              <Zap className="mr-3 h-6 w-6 text-[#1D40B8]" />
+              <h3 className="text-lg font-bold text-[#0B1B45]">
+                Quick Actions
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {user.role === "ADMIN" ? (
+                <>
+                  <ActionButton
+                    primary
+                    icon={Users}
+                    label="Manage Students"
+                    onClick={() => navigate("/students")}
+                  />
+                  <ActionButton
+                    icon={FileText}
+                    label="Generate Report"
+                    onClick={() => setShowReportModal(true)}
+                  />
+                  <ActionButton
+                    icon={Megaphone}
+                    label="Send Announcement"
+                    onClick={() => navigate("/announcements")}
+                  />
+                </>
+              ) : (
+                <>
+                  <ActionButton
+                    primary
+                    icon={Users}
+                    label="View Students"
+                    onClick={() => navigate("/students")}
+                  />
+                  <ActionButton
+                    icon={MessageSquare}
+                    label="View Complaints"
+                    onClick={() => navigate("/complaints")}
+                  />
+                  <ActionButton
+                    icon={Calendar}
+                    label="View Leave Requests"
+                    onClick={() => navigate("/leaves")}
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
+    );
+  };
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <MessageSquare className="h-8 w-8 text-blue-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    My Complaints
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats?.stats?.complaints?.pending || 0}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
+  const renderStudentDashboard = () => {
+    const roomNumber = stats?.student?.roomNumber;
+    const announcements = (stats?.recentAnnouncements || []).slice(0, 3);
+
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-4xl font-extrabold text-[#0B1B45]">
+            Welcome back,{" "}
+            <span className="text-[#1D40B8]">{user.firstName}</span>!
+          </h1>
+          <p className="mt-1 text-gray-600">
+            Manage your hostel activities with ease
+          </p>
         </div>
 
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <CreditCard className="h-8 w-8 text-green-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Pending Fees
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    ₹{stats?.stats?.fees?.pendingAmount || 0}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+          <StatCard
+            title="My Complaints"
+            value={stats?.stats?.complaints?.pending ?? 0}
+            icon={MessageSquare}
+            theme={themes.blue}
+            onClick={() => navigate("/complaints")}
+          />
+          <StatCard
+            title="Pending Fees"
+            value={`₹${Number(stats?.stats?.fees?.pendingAmount ?? 0).toLocaleString("en-IN")}`}
+            icon={IndianRupee}
+            theme={themes.purple}
+            onClick={() => navigate("/fees")}
+          />
+          <StatCard
+            title="Active Leaves"
+            value={stats?.stats?.leaves?.active ?? 0}
+            icon={Calendar}
+            theme={themes.green}
+            onClick={() => navigate("/leaves")}
+          />
+          <StatCard
+            title="Room"
+            value={roomNumber || "Not Assigned"}
+            icon={BedDouble}
+            theme={themes.amber}
+            small
+          />
         </div>
 
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Calendar className="h-8 w-8 text-yellow-600" />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3 rounded-2xl bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <Megaphone className="mr-3 h-6 w-6 text-[#0B1B45]" />
+                <h3 className="text-lg font-bold text-[#0B1B45]">
+                  Recent Announcements
+                </h3>
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Active Leaves
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats?.stats?.leaves?.active || 0}
-                  </dd>
-                </dl>
-              </div>
+              <button
+                onClick={() => navigate("/announcements")}
+                className="flex items-center text-sm font-semibold text-[#1D40B8] hover:underline"
+              >
+                View All
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </button>
             </div>
-          </div>
-        </div>
 
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Building className="h-8 w-8 text-purple-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Room
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats?.student?.roomNumber || "Not Assigned"}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Recent Announcements</h3>
-          </div>
-          <div className="card-content">
-            {stats?.recentAnnouncements?.length > 0 ? (
-              <div className="space-y-3">
-                {stats.recentAnnouncements.map((announcement) => (
-                  <div
-                    key={announcement.id}
-                    className="border-l-4 border-blue-500 pl-4"
-                  >
-                    <h4 className="font-medium">{announcement.title}</h4>
-                    <p className="text-sm text-gray-600">
-                      {announcement.content.substring(0, 100)}...
-                    </p>
+            {announcements.length > 0 ? (
+              <div className="divide-y divide-gray-100">
+                {announcements.map((a) => (
+                  <div key={a.id} className="flex items-center py-4">
+                    <div className="mr-4 h-10 w-1 flex-shrink-0 rounded-full bg-[#0B1B45]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-[#0B1B45]">
+                        {a.title}
+                      </p>
+                      <p className="truncate text-sm text-gray-500">
+                        {a.content}
+                      </p>
+                    </div>
+                    <span className="ml-4 flex flex-shrink-0 items-center rounded-full bg-[#0F1F4B] px-3 py-1.5 text-xs font-medium text-white">
+                      <Calendar className="mr-1.5 h-3.5 w-3.5" />
+                      {formatDate(a.publishDate)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -346,55 +411,50 @@ const Dashboard = () => {
               <p className="text-gray-500">No recent announcements.</p>
             )}
           </div>
-        </div>
 
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Quick Actions</h3>
-          </div>
-          <div className="card-content">
+          <div className="lg:col-span-2 rounded-2xl bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center">
+              <Zap className="mr-3 h-6 w-6 text-[#1D40B8]" />
+              <h3 className="text-lg font-bold text-[#0B1B45]">
+                Quick Actions
+              </h3>
+            </div>
             <div className="space-y-3">
-              <button
-                onClick={() => (window.location.href = "/complaints")}
-                className="btn-primary w-full"
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Submit Complaint
-              </button>
-              <button
-                onClick={() => (window.location.href = "/leaves")}
-                className="btn-outline w-full"
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Apply for Leave
-              </button>
-              <button
-                onClick={() => (window.location.href = "/fees")}
-                className="btn-outline w-full"
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                View Fee Details
-              </button>
-              {stats?.student?.roomNumber && (
-                <button
+              <ActionButton
+                primary
+                icon={MessageSquare}
+                label="Submit Complaint"
+                onClick={() => navigate("/complaints")}
+              />
+              <ActionButton
+                icon={Calendar}
+                label="Apply for Leave"
+                onClick={() => navigate("/leaves")}
+              />
+              <ActionButton
+                icon={CreditCard}
+                label="View Fee Details"
+                onClick={() => navigate("/fees")}
+              />
+              {roomNumber && (
+                <ActionButton
+                  icon={LogOut}
+                  label="Leave Room"
                   onClick={handleLeaveRoom}
-                  className="btn-outline w-full"
-                >
-                  Leave Room
-                </button>
+                />
               )}
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
-      {user.role === "ADMIN" && renderAdminDashboard()}
-      {user.role === "WARDEN" && renderAdminDashboard()}
-      {user.role === "STUDENT" && renderStudentDashboard()}
+      {user.role === "STUDENT"
+        ? renderStudentDashboard()
+        : renderStaffDashboard()}
 
       {/* Report Generation Modal */}
       {showReportModal && (

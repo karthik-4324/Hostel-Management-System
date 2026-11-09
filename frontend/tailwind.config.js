@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
@@ -13,18 +10,16 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          50: "#eef2fb",
+          100: "#dce4f7",
+          200: "#bccbef",
+          300: "#93a9e3",
+          400: "#5f7dd0",
+          500: "#3b5bbd",
+          600: "#1e2f94",
+          700: "#18267a",
+          800: "#121c5c",
+          900: "#0b1a45",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -59,4 +54,4 @@ export default {
     },
   },
   plugins: [],
-}
+};

@@ -1,30 +1,40 @@
-import { Menu, Bell, User, LogOut } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { Menu, User, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Menu as HeadlessMenu } from "@headlessui/react";
+import { useAuth } from "../contexts/AuthContext";
+import NotificationBell from "./NotificationBell";
+import Logo from "./Logo";
 
 const Header = () => {
   const { user, logout } = useAuth();
+
+  const openSidebar = () => window.dispatchEvent(new Event("toggle-sidebar"));
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center">
-          <button className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 lg:hidden">
+          <button
+            onClick={openSidebar}
+            aria-label="Open menu"
+            className="mr-3 p-2 rounded-md text-gray-500 hover:bg-gray-100 lg:hidden"
+          >
             <Menu className="h-6 w-6" />
           </button>
-          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">
-            Hostel Management System
-          </h1>
+          <Link to="/dashboard" className="flex items-center">
+            {/* <Logo className="mr-3 h-9 w-9 text-[#0B1B45]" /> */}
+            <h1 className="text-lg sm:text-2xl font-extrabold text-slate-800 tracking-tight">
+              Hostel Management System
+            </h1>
+          </Link>
         </div>
 
         <div className="flex items-center space-x-4">
-          <button className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
-            <Bell className="h-6 w-6" />
-          </button>
+          <NotificationBell />
 
           <HeadlessMenu as="div" className="relative">
             <HeadlessMenu.Button className="flex items-center space-x-3 p-2 rounded-md text-gray-700 hover:bg-gray-100">
-              <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#1E2F94] rounded-full flex items-center justify-center">
                 <User className="h-5 w-5 text-white" />
               </div>
               <div className="hidden md:block text-left">
