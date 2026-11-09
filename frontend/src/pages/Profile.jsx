@@ -1,83 +1,85 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { User, Mail, Phone, Calendar, MapPin } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { User, Mail, Phone, Calendar, MapPin } from "lucide-react";
 
 const Profile = () => {
-  const { user, updateProfile } = useAuth()
+  const { user, updateProfile } = useAuth();
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
+    firstName: "",
+    lastName: "",
+    phone: "",
     emergencyContact: {
-      name: '',
-      phone: '',
-      relation: ''
+      name: "",
+      phone: "",
+      relation: "",
     },
-    course: '',
-    year: '',
-    department: ''
-  })
-  const [loading, setLoading] = useState(false)
+    course: "",
+    year: "",
+    department: "",
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       setFormData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        phone: user.phone || '',
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        phone: user.phone || "",
         emergencyContact: user.emergencyContact || {
-          name: '',
-          phone: '',
-          relation: ''
+          name: "",
+          phone: "",
+          relation: "",
         },
-        course: user.course || '',
-        year: user.year || '',
-        department: user.department || ''
-      })
+        course: user.course || "",
+        year: user.year || "",
+        department: user.department || "",
+      });
     }
-  }, [user])
+  }, [user]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    
-    if (name.startsWith('emergencyContact.')) {
-      const field = name.split('.')[1]
+    const { name, value } = e.target;
+
+    if (name.startsWith("emergencyContact.")) {
+      const field = name.split(".")[1];
       setFormData({
         ...formData,
         emergencyContact: {
           ...formData.emergencyContact,
-          [field]: value
-        }
-      })
+          [field]: value,
+        },
+      });
     } else {
       setFormData({
         ...formData,
-        [name]: value
-      })
+        [name]: value,
+      });
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    
-    await updateProfile(formData)
-    setLoading(false)
-  }
+    e.preventDefault();
+    setLoading(true);
+
+    await updateProfile(formData);
+    setLoading(false);
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight mb-1">
+            Profile
+          </h1>
           <p className="text-gray-600">Manage your account information</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Info Card */}
-          <div className="card">
-            <div className="card-content">
-              <div className="text-center">
+          <div className="card h-full">
+            <div className="card-content h-full">
+              <div className="text-center mt-16">
                 <div className="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="h-10 w-10 text-white" />
                 </div>
@@ -85,7 +87,7 @@ const Profile = () => {
                   {user?.firstName} {user?.lastName}
                 </h3>
                 <p className="text-sm text-gray-500">{user?.role}</p>
-                
+
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-center text-sm text-gray-600">
                     <Mail className="h-4 w-4 mr-2" />
@@ -116,13 +118,18 @@ const Profile = () => {
           <div className="lg:col-span-2">
             <div className="card">
               <div className="card-header">
-                <h3 className="card-title">Edit Profile</h3>
+                <h1 className="text-xl font-bold text-slate-800 tracking-tight mb-1">
+                  Edit Profile
+                </h1>
               </div>
               <div className="card-content">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="firstName"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         First Name
                       </label>
                       <input
@@ -134,9 +141,12 @@ const Profile = () => {
                         onChange={handleChange}
                       />
                     </div>
-                    
+
                     <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="lastName"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Last Name
                       </label>
                       <input
@@ -148,9 +158,12 @@ const Profile = () => {
                         onChange={handleChange}
                       />
                     </div>
-                    
+
                     <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="phone"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Phone
                       </label>
                       <input
@@ -162,11 +175,14 @@ const Profile = () => {
                         onChange={handleChange}
                       />
                     </div>
-                    
-                    {user?.role === 'STUDENT' && (
+
+                    {user?.role === "STUDENT" && (
                       <>
                         <div>
-                          <label htmlFor="course" className="block text-sm font-medium text-gray-700">
+                          <label
+                            htmlFor="course"
+                            className="block text-sm font-medium text-gray-700"
+                          >
                             Course
                           </label>
                           <input
@@ -178,9 +194,12 @@ const Profile = () => {
                             onChange={handleChange}
                           />
                         </div>
-                        
+
                         <div>
-                          <label htmlFor="year" className="block text-sm font-medium text-gray-700">
+                          <label
+                            htmlFor="year"
+                            className="block text-sm font-medium text-gray-700"
+                          >
                             Year
                           </label>
                           <select
@@ -199,10 +218,13 @@ const Profile = () => {
                         </div>
                       </>
                     )}
-                    
-                    {(user?.role === 'WARDEN' || user?.role === 'ADMIN') && (
+
+                    {(user?.role === "WARDEN" || user?.role === "ADMIN") && (
                       <div>
-                        <label htmlFor="department" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="department"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Department
                         </label>
                         <input
@@ -216,12 +238,17 @@ const Profile = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="border-t pt-6">
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">Emergency Contact</h4>
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">
+                      Emergency Contact
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label htmlFor="emergencyContact.name" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="emergencyContact.name"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Name
                         </label>
                         <input
@@ -233,9 +260,12 @@ const Profile = () => {
                           onChange={handleChange}
                         />
                       </div>
-                      
+
                       <div>
-                        <label htmlFor="emergencyContact.phone" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="emergencyContact.phone"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Phone
                         </label>
                         <input
@@ -247,9 +277,12 @@ const Profile = () => {
                           onChange={handleChange}
                         />
                       </div>
-                      
+
                       <div>
-                        <label htmlFor="emergencyContact.relation" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="emergencyContact.relation"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Relation
                         </label>
                         <input
@@ -270,7 +303,7 @@ const Profile = () => {
                       disabled={loading}
                       className="btn-primary"
                     >
-                      {loading ? 'Updating...' : 'Update Profile'}
+                      {loading ? "Updating..." : "Update Profile"}
                     </button>
                   </div>
                 </form>
@@ -280,7 +313,7 @@ const Profile = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Profile
+export default Profile;

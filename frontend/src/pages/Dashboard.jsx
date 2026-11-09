@@ -234,7 +234,9 @@ const Dashboard = () => {
   const renderStudentDashboard = () => (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
+        <h1 className="text-xl font-bold text-slate-800 tracking-tight mb-1">
+          Student Dashboard
+        </h1>
         <p className="text-gray-600">Welcome back, {user.firstName}!</p>
       </div>
 

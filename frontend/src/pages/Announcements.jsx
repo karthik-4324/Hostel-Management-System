@@ -188,11 +188,13 @@ const Announcements = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Announcements</h1>
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight mb-1">
+            Announcements
+          </h1>
           <p className="text-gray-600">
-            {isAdmin
-              ? "Create and manage announcements"
-              : "Stay updated with the latest announcements"}
+            {user.role === "STUDENT"
+              ? "Stay updated with the latest announcements"
+              : "Manage and publish announcements"}
           </p>
         </div>
         {isAdmin && (
@@ -205,7 +207,7 @@ const Announcements = () => {
 
       <div className="card">
         <div className="card-content">
-          <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4 mb-6 mt-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input

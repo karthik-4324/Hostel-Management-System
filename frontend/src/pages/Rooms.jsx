@@ -187,7 +187,9 @@ const Rooms = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Rooms</h1>
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight mb-1">
+            Rooms
+          </h1>
           <p className="text-gray-600">Manage hostel rooms and occupancy</p>
         </div>
         {user.role === "ADMIN" && (
