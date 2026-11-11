@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { User, Mail, Phone, Calendar, MapPin } from "lucide-react";
+import CourseSelect from "../components/CourseSelect";
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
@@ -185,11 +186,9 @@ const Profile = () => {
                           >
                             Course
                           </label>
-                          <input
+                          <CourseSelect
                             id="course"
                             name="course"
-                            type="text"
-                            className="input mt-1"
                             value={formData.course}
                             onChange={handleChange}
                           />

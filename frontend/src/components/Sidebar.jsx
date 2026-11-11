@@ -9,6 +9,7 @@ import {
   Calendar,
   Megaphone,
   User,
+  UserCog,
   Heart,
   X,
 } from "lucide-react";
@@ -57,6 +58,12 @@ const navigation = [
     href: "/announcements",
     icon: Megaphone,
     roles: ["ADMIN", "WARDEN", "STUDENT"],
+  },
+  {
+    name: "Staff",
+    href: "/staff",
+    icon: UserCog,
+    roles: ["ADMIN"],
   },
   {
     name: "Profile",

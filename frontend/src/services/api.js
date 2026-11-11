@@ -141,4 +141,10 @@ export const dashboardAPI = {
   getWardenDashboard: () => api.get("/api/warden/dashboard"),
 };
 
+// Staff API (admin only)
+export const staffAPI = {
+  getAll: () => api.get("/api/admin/staff"),
+  create: (data) => api.post("/api/admin/staff", data),
+  delete: (id) => api.delete(`/api/admin/staff/${id}`),
+};
 export default api;

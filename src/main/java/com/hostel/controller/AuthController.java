@@ -29,23 +29,23 @@ public class AuthController {
         try {
             if (userService.existsByEmail(user.getEmail())) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "Email already exists"));
+                        .body(Map.of("success", false, "message", "Email already exists"));
             }
-
+            user.setRole("STUDENT");
             User savedUser = userService.saveUser(user);
-            
+
             String token = jwtUtil.generateToken(savedUser.getId(), savedUser.getEmail(), savedUser.getRole());
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "User registered successfully");
             response.put("token", token);
             response.put("user", savedUser);
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "Registration failed: " + e.getMessage()));
+                    .body(Map.of("success", false, "message", "Registration failed: " + e.getMessage()));
         }
     }
 
@@ -56,40 +56,40 @@ public class AuthController {
             String password = loginRequest.get("password");
 
             Optional<User> userOptional = userService.getUserByEmail(email);
-            
+
             if (userOptional.isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "Invalid email or password"));
+                        .body(Map.of("success", false, "message", "Invalid email or password"));
             }
 
             User user = userOptional.get();
-            
+
             if (!user.isActive()) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "Account is deactivated"));
+                        .body(Map.of("success", false, "message", "Account is deactivated"));
             }
 
             // Validate password
             if (!userService.validatePassword(password, user.getPassword())) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "Invalid email or password"));
+                        .body(Map.of("success", false, "message", "Invalid email or password"));
             }
 
             // Update last login
             userService.updateLastLogin(user.getId());
 
             String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole());
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Login successful");
             response.put("token", token);
             response.put("user", user);
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "Login failed: " + e.getMessage()));
+                    .body(Map.of("success", false, "message", "Login failed: " + e.getMessage()));
         }
     }
 
@@ -98,20 +98,20 @@ public class AuthController {
         try {
             String userId = (String) request.getAttribute("userId");
             Optional<User> userOptional = userService.getUserById(userId);
-            
+
             if (userOptional.isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "User not found"));
+                        .body(Map.of("success", false, "message", "User not found"));
             }
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("user", userOptional.get());
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "Failed to fetch profile: " + e.getMessage()));
+                    .body(Map.of("success", false, "message", "Failed to fetch profile: " + e.getMessage()));
         }
     }
 
@@ -120,21 +120,21 @@ public class AuthController {
         try {
             String userId = (String) request.getAttribute("userId");
             User updatedUser = userService.updateUser(userId, userDetails);
-            
+
             if (updatedUser == null) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "User not found"));
+                        .body(Map.of("success", false, "message", "User not found"));
             }
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Profile updated successfully");
             response.put("user", updatedUser);
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "Failed to update profile: " + e.getMessage()));
+                    .body(Map.of("success", false, "message", "Failed to update profile: " + e.getMessage()));
         }
     }
 }

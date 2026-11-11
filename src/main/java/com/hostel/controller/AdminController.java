@@ -195,6 +195,110 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/staff")
+    public ResponseEntity<?> getStaff() {
+        try {
+            if (!isAdmin()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "Access denied"));
+            }
+
+            java.util.List<User> staff = new java.util.ArrayList<>();
+            staff.addAll(userService.getUsersByRole("ADMIN"));
+            staff.addAll(userService.getUsersByRole("WARDEN"));
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", Map.of("staff", staff));
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Failed to fetch staff"));
+        }
+    }
+
+    @PostMapping("/staff")
+    public ResponseEntity<?> createStaff(@Valid @RequestBody User staff) {
+        try {
+            if (!isAdmin()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "Access denied"));
+            }
+
+            String role = staff.getRole() == null ? "" : staff.getRole().toUpperCase();
+            if (!"WARDEN".equals(role) && !"ADMIN".equals(role)) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Role must be WARDEN or ADMIN"));
+            }
+            if (staff.getPassword() == null || staff.getPassword().length() < 8) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Password must be at least 8 characters"));
+            }
+            if (userService.existsByEmail(staff.getEmail())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "An account with this email already exists"));
+            }
+
+            staff.setRole(role);
+            staff.setRoomId(null);
+            User saved = userService.saveUser(staff);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Staff account created successfully");
+            response.put("data", Map.of("staff", saved));
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            String message = e.getMessage() == null ? "Failed to create staff" : e.getMessage();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", message));
+        }
+    }
+
+    @DeleteMapping("/staff/{id}")
+    public ResponseEntity<?> deleteStaff(@PathVariable String id, HttpServletRequest request) {
+        try {
+            if (!isAdmin()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "Access denied"));
+            }
+
+            String currentId = (String) request.getAttribute("userId");
+            if (id.equals(currentId)) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "You cannot delete your own account"));
+            }
+
+            User target = userService.getUserById(id).orElse(null);
+            if (target == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Staff account not found"));
+            }
+            if (!"WARDEN".equals(target.getRole()) && !"ADMIN".equals(target.getRole())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "This is not a staff account"));
+            }
+            if ("ADMIN".equals(target.getRole()) && userService.countUsersByRole("ADMIN") <= 1) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "You cannot delete the last admin"));
+            }
+
+            userService.deleteUser(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Staff account removed");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            String message = e.getMessage() == null ? "Failed to remove staff" : e.getMessage();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", message));
+        }
+    }
+
     @GetMapping("/reports")
     public ResponseEntity<?> generateReport(
             @RequestParam String type,

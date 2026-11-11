@@ -3,6 +3,7 @@ import { studentsAPI, wardenAPI, roomsAPI } from "../services/api";
 import { Plus, Search, Edit, Trash2, User, UserPlus, Home } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
+import CourseSelect from "../components/CourseSelect";
 
 const Students = () => {
   const { user } = useAuth();
@@ -521,12 +522,10 @@ const Students = () => {
                     <label className="block text-sm font-medium text-gray-700">
                       Course
                     </label>
-                    <input
-                      type="text"
+                    <CourseSelect
                       name="course"
                       value={formData.course}
                       onChange={handleInputChange}
-                      className="input mt-1"
                     />
                   </div>
                   <div>

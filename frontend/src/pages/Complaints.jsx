@@ -421,7 +421,7 @@ const Complaints = () => {
                     className="input mt-1"
                     maxLength={100}
                     required
-                    placeholder="Brief description of the issue"
+                    placeholder="Title of the Complaint"
                   />
                 </div>
 

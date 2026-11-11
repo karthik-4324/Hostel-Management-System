@@ -118,3 +118,32 @@ select {
     color: #ffffff;
   }
 }
+
+/* ===== HMS theme: buttons and inputs ===== */
+.btn-primary {
+  background-color: #1e2f94;
+  border: 1px solid #1e2f94;
+  color: #ffffff;
+  border-radius: 0.75rem;
+  font-weight: 600;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: #18267a;
+  border-color: #18267a;
+}
+.btn-outline {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0b1b45;
+  border-radius: 0.75rem;
+  font-weight: 600;
+}
+.btn-outline:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+.input:focus {
+  outline: none;
+  border-color: #1e2f94;
+  box-shadow: 0 0 0 3px rgba(30, 47, 148, 0.2);
+}
