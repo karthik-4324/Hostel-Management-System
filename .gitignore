@@ -59,3 +59,7 @@ reports/
 **/node_modules/
 .eslintcache
 .clear
+
+
+**/application-local.properties
+.env
