@@ -184,7 +184,7 @@ This was a group project. I worked on:
 
 ## Team
 
-- Your name: [[GitHub profile link]](https://github.com/karthik-4324)](https://github.com/karthik-4324)
+- name: K.Karthik 
 - Teammate names: M.Sasidhar,P.Sandeep,N.Manoj,B.VaraPrasad,RajyaVardhan
 
 ## Screenshots
