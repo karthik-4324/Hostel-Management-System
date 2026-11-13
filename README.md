@@ -185,7 +185,7 @@ This was a group project. I worked on:
 ## Team
 
 - Your name: [GitHub profile link]
-- Teammate names: add them here
+- Teammate names: M.Sasidhar,P.Sandeep,N.Manoj,B.VaraPrasad,RajyaVardhan
 
 ## Screenshots
 
