@@ -197,20 +197,34 @@ This was a group project. I worked on:
 
 ## 📸 Application Screenshots
 
-**Admin Dashboard**
-<img src="frontend/screenshots/dashboard.png" width="800" alt="Hostel Management Dashboard">
+<div>
+  <b>Admin Dashboard</b><br>
+  <img src="frontend/screenshots/dashboard.png" width="800" alt="Hostel Management Dashboard">
+</div>
+<br>
 
-**Room Allocation & Management**
-<img src="frontend/screenshots/rooms.png" width="800" alt="Room Management Screen">
+<div>
+  <b>Students Page</b><br>
+  <img src="frontend/screenshots/students.png" width="800" alt="Student page">
+</div>
+<br>
 
-**Students**
-<img src="frontend/screenshots/students.png" width="800" alt="Student Screen">
+<div>
+  <b>Room Allocation & Management</b><br>
+  <img src="frontend/screenshots/rooms.png" width="800" alt="Room Management Screen">
+</div>
+<br>
 
-**Complaints Processing**
-<img src="frontend/screenshots/complaints.png" width="800" alt="Complaints Table">
+<div>
+  <b>Complaints Processing</b><br>
+  <img src="frontend/screenshots/complaints.png" width="800" alt="Complaints Table">
+</div>
+<br>
 
-**Secure Authentication**
-<img src="frontend/screenshots/login.png" width="800" alt="Login Screen">
+<div>
+  <b>Secure Authentication</b><br>
+  <img src="frontend/screenshots/login.png" width="800" alt="Login Screen">
+</div>
 
 
 
