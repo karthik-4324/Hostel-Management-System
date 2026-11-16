@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/leaves")
+@RequestMapping("/leaves")
 @CrossOrigin(origins = "*")
 public class LeaveController {
 

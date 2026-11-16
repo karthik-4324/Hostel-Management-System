@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/complaints")
+@RequestMapping("/complaints")
 @CrossOrigin(origins = "*")
 public class ComplaintController {
 

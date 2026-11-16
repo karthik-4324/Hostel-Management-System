@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/announcements")
+@RequestMapping("/announcements")
 @CrossOrigin(origins = "*")
 public class AnnouncementController {
 

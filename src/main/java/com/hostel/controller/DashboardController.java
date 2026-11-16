@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/dashboard")
+@RequestMapping("/dashboard")
 @CrossOrigin(origins = "*")
 public class DashboardController {
 

@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/fees")
+@RequestMapping("/fees")
 @CrossOrigin(origins = "*")
 public class FeeController {
 
@@ -173,7 +173,7 @@ public class FeeController {
         }
     }
 
-        @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteFee(@PathVariable String id, HttpServletRequest request) {
         try {
             String userRole = (String) request.getAttribute("userRole");
