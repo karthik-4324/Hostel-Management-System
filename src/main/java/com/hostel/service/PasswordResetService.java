@@ -42,7 +42,7 @@ public class PasswordResetService {
     @Value("${spring.mail.password:}")
     private String mailPassword;
 
-    @Value("${app.frontend-url:http://localhost:3000}")
+    @Value("${app.frontend-url:https://hostel-management-system-kappa-eight.vercel.app}")
     private String frontendUrl;
 
     public PasswordResetService(UserService userService, MongoTemplate mongoTemplate,
