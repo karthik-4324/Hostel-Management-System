@@ -184,7 +184,7 @@ This was a group project. I worked on:
 
 ## Team
 
-- name: K.Karthik 
+- name: K.Karthik
 - Teammate names: M.Sasidhar,P.Sandeep,N.Manoj,B.VaraPrasad,RajyaVardhan
 
   ## 🚀 Live Demo
@@ -194,6 +194,25 @@ This was a group project. I worked on:
 > **Note on Initial Load:** The backend server is hosted on a free cloud tier that spins down when inactive. When you first visit the site and try to log in, it may take about **50 seconds** for the server to wake up and respond. After that, the app will run at normal speed!
 
 ## Screenshots
+
+## 📸 Application Screenshots
+
+**Admin Dashboard**
+<img src="frontend/screenshots/dashboard.png" width="800" alt="Hostel Management Dashboard">
+
+**Room Allocation & Management**
+<img src="frontend/screenshots/rooms.png" width="800" alt="Room Management Screen">
+
+**Students**
+<img src="frontend/screenshots/students.png" width="800" alt="Student Screen">
+
+**Complaints Processing**
+<img src="frontend/screenshots/complaints.png" width="800" alt="Complaints Table">
+
+**Secure Authentication**
+<img src="frontend/screenshots/login.png" width="800" alt="Login Screen">
+
+
 
 <!-- Put images in docs/screenshots/ and link them here:
 ![Login](docs/screenshots/login.png)
