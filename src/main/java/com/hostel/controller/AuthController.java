@@ -3,6 +3,7 @@ package com.hostel.controller;
 import com.hostel.model.User;
 import com.hostel.security.JwtUtil;
 import com.hostel.service.UserService;
+import com.hostel.service.PasswordResetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,9 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user) {
@@ -90,6 +94,54 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("success", false, "message", "Login failed: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        try {
+            passwordResetService.requestReset(body.get("email"));
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(AuthController.class)
+                    .error("Forgot password failed: {}", e.getMessage());
+        }
+        // Same answer whether or not the email exists
+        return ResponseEntity.ok(Map.of("success", true,
+                "message", "If an account exists for that email, a reset link has been sent."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        try {
+            passwordResetService.resetPassword(body.get("token"), body.get("password"));
+            return ResponseEntity.ok(Map.of("success", true,
+                    "message", "Password reset successfully. You can sign in now."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Failed to reset password"));
+        }
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(HttpServletRequest request,
+            @RequestBody Map<String, String> body) {
+        try {
+            String userId = (String) request.getAttribute("userId");
+            if (userId == null) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("success", false, "message", "Please sign in again"));
+            }
+            passwordResetService.changePassword(userId, body.get("currentPassword"), body.get("newPassword"));
+            return ResponseEntity.ok(Map.of("success", true, "message", "Password changed successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Failed to change password"));
         }
     }
 

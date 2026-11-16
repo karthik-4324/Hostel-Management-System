@@ -37,6 +37,10 @@ export const authAPI = {
   register: (userData) => api.post("/api/auth/register", userData),
   getProfile: () => api.get("/api/auth/profile"),
   updateProfile: (profileData) => api.put("/api/auth/profile", profileData),
+  forgotPassword: (email) => api.post("/api/auth/forgot-password", { email }),
+  resetPassword: (token, password) =>
+    api.post("/api/auth/reset-password", { token, password }),
+  changePassword: (data) => api.put("/api/auth/change-password", data),
 };
 
 // Health API

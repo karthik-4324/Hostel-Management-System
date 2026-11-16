@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { User, Mail, Phone, Calendar, MapPin } from "lucide-react";
 import CourseSelect from "../components/CourseSelect";
+import ChangePasswordCard from "../components/ChangePasswordCard";
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
@@ -310,6 +311,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
+        <ChangePasswordCard />
       </div>
     </div>
   );
