@@ -127,7 +127,8 @@ const Rooms = () => {
       fetchStats();
     } catch (error) {
       toast.error(
-        editingRoom ? "Failed to update room" : "Failed to create room",
+        error.response?.data?.message ||
+          (editingRoom ? "Failed to update room" : "Failed to create room"),
       );
     }
   };
