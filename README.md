@@ -187,6 +187,12 @@ This was a group project. I worked on:
 - name: K.Karthik 
 - Teammate names: M.Sasidhar,P.Sandeep,N.Manoj,B.VaraPrasad,RajyaVardhan
 
+  ## 🚀 Live Demo
+
+**🌐 [Click here to view the live application](https://hostel-management-system-kappa-eight.vercel.app)**
+
+> **Note on Initial Load:** The backend server is hosted on a free cloud tier that spins down when inactive. When you first visit the site and try to log in, it may take about **50 seconds** for the server to wake up and respond. After that, the app will run at normal speed!
+
 ## Screenshots
 
 <!-- Put images in docs/screenshots/ and link them here:
